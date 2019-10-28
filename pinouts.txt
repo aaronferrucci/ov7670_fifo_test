@@ -1,0 +1,65 @@
+############################################################################
+# Copyright 2019 Intel Corporation. 
+#
+# This reference design file is subject licensed to you by the terms and 
+# conditions of the applicable License Terms and Conditions for Hardware 
+# Reference Designs and/or Design Examples (either as signed by you or 
+# found at https://www.altera.com/common/legal/leg-license_agreement.html ).  
+#
+# As stated in the license, you agree to only use this reference design 
+# solely in conjunction with Intel FPGAs or Intel CPLDs.  
+#
+# THE REFERENCE DESIGN IS PROVIDED "AS IS" WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY OF ANY KIND INCLUDING WARRANTIES OF MERCHANTABILITY, 
+# NONINFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE. Intel does not 
+# warrant or assume responsibility for the accuracy or completeness of any
+# information, links or other items within the Reference Design and any 
+# accompanying materials.
+#
+# In the event that you do not agree with such terms and conditions, do not
+# use the reference design file.
+############################################################################
+
+# OV7670 640x480 VGA CMOS Camera Module With AL422 FIFO LD0 Crystal Oscillator
+# pinout notes from:
+# https://www.banggood.com/OV7670-640x480-VGA-CMOS-Camera-Module-With-AL422-FIFO-LD0-Crystal-Oscillator-p-1558348.html
+
+3V3-----Input power supply voltage (3.3,5V is recommended, but not recommended)
+GDN-----grounding point
+SIO_C---SCCB interface control clock (Note: some low-level microcontrollers need pull-up control, similar to I2C interface)
+SIO_D---SCCB interface serial data input (output) end (Note: some low-level microcontrollers need pull-up control, similar to I2C interface)
+VSYNC---frame sync signal (output signal)
+HREF----line sync signal (output signal, generally not applicable, special case)
+D0-D7---data port (output signal)
+RESTE---Reset port (normal use pull high)
+PWDN----Power consumption selection mode (normal use pull low)
+STROBE—Photo flash control port (not required for normal use)
+FIFO_RCK---FIFO memory read clock control terminal
+FIFO_WR_CTR----FIFO write control terminal (1 is to allow CMOS to write to FIFO, 0 is forbidden)
+FIFO_OE----FIFO shutdown control
+FIFO_WRST—FIFO write pointer reset terminal
+FIFO_RRST—FIFO read pointer reset terminal
+
+3.3V	red						JP7-4
+GND	black						JP7-6
+SIOC	-	needs pullup?
+SIOD	-	needs pullup?
+VSYNC	white	vertical sync				IO[11] cam_vsync
+HREF	-
+D7	-
+D6	-
+D5	-
+D4	-
+D3	-
+D2	-
+D1	-
+D0	-
+RST	green	active low reset			IO[10]	cam_reset_n
+PWDN	blue	active high powerdown			IO[7]	cam_pwdn
+STR	-
+RCK	white2	fifo read clock				IO[6]	cam_rclk
+WR	orange	active high fifo write enable		IO[9]	cam_we
+OE	yellow	active low readdata output enable	IO[4]	cam_oe_n
+WRST	green2	active low reset, write addr		IO[8]	cam_wrst_n
+RRST	blue2	active low reset, read addr		IO[5]	cam_rrst_n
+
