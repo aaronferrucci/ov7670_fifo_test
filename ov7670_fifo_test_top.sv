@@ -24,14 +24,38 @@
 module ov7670_fifo_test_top(
   input wire MAX10_CLK1_50,
 
-  input wire cam_vsync,    // IO[11]
-  output wire cam_reset_n, // IO[10]
-  output wire cam_pwdn,    // IO[7]
-  output wire cam_rclk,    // IO[6]
-  output wire cam_we,      // IO[9]
-  output wire cam_oe_n,    // IO[4]
-  output wire cam_wrst_n,  // IO[8]
-  output wire cam_rrst_n,  // IO[5]
+  input wire cam_sioc,      // GPIO_12
+  input wire cam_siod,      // GPIO_35
+  input wire cam_vsync,     // GPIO_0
+  input wire cam_href,      // GPIO_33
+  input wire cam_str,       // GPIO_28
+
+  input wire [7:0] cam_data, // GPIO_16,GPIO_31,GPIO_18,GPIO_27,GPIO_20,GPIO_25,GPIO_24,GPIO_23
+  output wire cam_reset_n,   // GPIO_26
+  output wire cam_pwdn,      // GPIO_21
+  output wire cam_rclk,      // GPIO_19
+  output wire cam_we,        // GPIO_30
+  output wire cam_oe_n,      // GPIO_15
+  output wire cam_wrst_n,    // GPIO_32
+  output wire cam_rrst_n,    // GPIO_13
+
+  // GPIO is broken out as individual bits, for individual control.
+  input GPIO_1,
+  input GPIO_2,
+  input GPIO_3,
+  input GPIO_4,
+  input GPIO_5,
+  input GPIO_6,
+  input GPIO_7,
+  input GPIO_8,
+  input GPIO_9,
+  input GPIO_10,
+  input GPIO_11,
+  input GPIO_14,
+  input GPIO_17,
+  input GPIO_22,
+  input GPIO_29,
+  input GPIO_34,
 
   output wire [7:0] HEX0,
   output wire [7:0] HEX1,
@@ -79,12 +103,11 @@ module ov7670_fifo_test_top(
   end
 	  
   assign cam_reset_n = reset_n;
-  assign cam_pwdn = ~reset_n; // camera is powered down
-  // assign cam_rclk = clk25;
-  assign cam_rclk = 1'b0;
+  assign cam_pwdn = ~reset_n; 
+  assign cam_rclk = clk25;
   assign cam_we = 1'b1;
 
-  assign cam_oe_n = 1'b1;
+  assign cam_oe_n = 1'b0;
   assign cam_wrst_n = 1'b1;
   assign cam_rrst_n = 1'b1;
 
@@ -109,7 +132,7 @@ module ov7670_fifo_test_top(
   assign HEX0 = ~(8'h3f | {blip, 7'b0}); // 0
 
   // LEDR is active high
-  assign LEDR = {9'b0, cam_vsync};
+  assign LEDR = {cam_data[7:0], cam_href, cam_vsync};
 endmodule
 
 `default_nettype wire

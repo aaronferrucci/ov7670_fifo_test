@@ -40,26 +40,28 @@ FIFO_OE----FIFO shutdown control
 FIFO_WRST—FIFO write pointer reset terminal
 FIFO_RRST—FIFO read pointer reset terminal
 
-3.3V	red						JP7-4
-GND	black						JP7-6
-SIOC	-	needs pullup?
-SIOD	-	needs pullup?
-VSYNC	white	vertical sync				IO[11] cam_vsync
-HREF	-
-D7	-
-D6	-
-D5	-
-D4	-
-D3	-
-D2	-
-D1	-
-D0	-
-RST	green	active low reset			IO[10]	cam_reset_n
-PWDN	blue	active high powerdown			IO[7]	cam_pwdn
-STR	-
-RCK	white2	fifo read clock				IO[6]	cam_rclk
-WR	orange	active high fifo write enable		IO[9]	cam_we
-OE	yellow	active low readdata output enable	IO[4]	cam_oe_n
-WRST	green2	active low reset, write addr		IO[8]	cam_wrst_n
-RRST	blue2	active low reset, read addr		IO[5]	cam_rrst_n
+camera	notes					2x20 pin	signal
+--------------------------------------------------------------------------
+3.3V						29
+GND						30
+SIOC	needs pullup?				15		cam_sioc
+SIOD	needs pullup?				40		cam_siod
+VSYNC	vertical sync				1		cam_vsync
+HREF	horizontal sync				38		cam_href
+D7						19		cam_data[7]
+D6						36		cam_data[6]
+D5						21		cam_data[5]
+D4						32		cam_data[4]
+D3						23		cam_data[3]
+D2						28		cam_data[2]
+D1						27		cam_data[1]
+D0						26		cam_data[0]
+RST	active low reset			31		cam_reset_n
+PWDN	active high powerdown			24		cam_pwdn
+STR						33		cam_str
+RCK	fifo read clock				22		cam_rclk
+WR	active high fifo write enable		35		cam_we
+OE	active low readdata output enable	18		cam_oe_n
+WRST	active low reset, write addr		37		cam_wrst_n
+RRST	active low reset, read addr		16		cam_rrst_n
 
