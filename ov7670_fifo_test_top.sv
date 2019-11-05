@@ -36,8 +36,8 @@ module ov7670_fifo_test_top(
   output wire cam_rclk,      // GPIO_19
   output wire cam_we,        // GPIO_30
   output wire cam_oe_n,      // GPIO_15
-  output wire cam_wrst_n,    // GPIO_32
-  output wire cam_rrst_n,    // GPIO_13
+  output reg cam_wrst_n,     // GPIO_32
+  output reg cam_rrst_n,     // GPIO_13
 
   // GPIO is broken out as individual bits, for individual control.
   input GPIO_1,
@@ -108,8 +108,99 @@ module ov7670_fifo_test_top(
   assign cam_we = 1'b1;
 
   assign cam_oe_n = 1'b0;
-  assign cam_wrst_n = 1'b1;
-  assign cam_rrst_n = 1'b1;
+
+  localparam CAM_RESET_W = 5;
+  reg [CAM_RESET_W-1:0] cam_wrst_n_counter;
+  always @(posedge clk25 or negedge reset_n) begin
+    if (~reset_n) begin
+      cam_wrst_n <= 1'b0;
+      cam_wrst_n_counter <= '0;
+    end
+    else begin
+      if (sync_vsync) begin
+        if (~cam_wrst_n_counter[CAM_RESET_W-1]) begin
+          // reset, and increment until counter MSB is set
+          cam_wrst_n <= 1'b0;
+          cam_wrst_n_counter <= cam_wrst_n_counter + 1'b1;
+        end
+        else begin
+          // count reached set MSB, release reset
+          cam_wrst_n <= 1'b1;
+        end
+      end
+      else begin
+        // clear counter for next vsync assertion
+        cam_wrst_n_counter <= '0;
+      end
+    end
+  end
+
+  reg d1_sync_href;
+  wire sync_href_f = d1_sync_href & ~sync_href; // falling edge
+  always @(posedge clk25 or negedge reset_n) begin
+    if (~reset_n) begin
+      cam_rrst_n <= '0;
+      d1_sync_href <= '0;
+    end
+    else begin
+      d1_sync_href <= sync_href;
+      if (~wrote && sync_vsync)
+        cam_rrst_n <= '0;
+      if (sync_href_f)
+        cam_rrst_n <= '1;
+    end
+  end
+
+  reg [15:0] addr;
+  reg wren;
+  reg wrote;
+  always @(posedge clk25 or negedge reset_n) begin
+    if (~reset_n) begin
+      addr <= '0;
+      wren <= '0;
+      wrote <= '0;
+    end
+    else begin
+      if (wren)
+        addr <= addr + 1'b1;
+      if (&addr) begin
+        wren <= '0;
+      end
+      else if (~wrote && sync_href_f) begin
+        wren <= '1;
+        wrote <= '1;
+      end
+    end
+  end
+
+  wire [7:0] pixel_data;
+  pixel_buffer the_pixels(
+    .address (addr),
+    .clock (clk25),
+    .data (cam_data),
+    .wren (wren),
+    .q (pixel_data)
+  );
+
+  // synchronize camera sync outputs into this clock domain
+  localparam SYNC_STAGES = 2;
+  wire sync_vsync, sync_href;
+  reg [SYNC_STAGES-1:0] vsync_stage;
+  reg [SYNC_STAGES-1:0] href_stage;
+
+  always @(posedge clk25 or negedge reset_n) begin
+    if (~reset_n) begin
+      vsync_stage <= '0;
+      href_stage <= '0;
+    end
+    else begin
+      vsync_stage <= {vsync_stage[SYNC_STAGES-2:0], cam_vsync};
+      href_stage <= {href_stage[SYNC_STAGES-2:0], cam_href};
+    end
+  end
+
+  assign sync_vsync = vsync_stage[SYNC_STAGES-1];
+  assign sync_href = href_stage[SYNC_STAGES-1];
 
   // 7-segment map
   // +--0--+
@@ -132,7 +223,7 @@ module ov7670_fifo_test_top(
   assign HEX0 = ~(8'h3f | {blip, 7'b0}); // 0
 
   // LEDR is active high
-  assign LEDR = {cam_data[7:0], cam_href, cam_vsync};
+  assign LEDR = {cam_data[7:0], sync_href, sync_vsync};
 endmodule
 
 `default_nettype wire
